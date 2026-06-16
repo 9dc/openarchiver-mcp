@@ -1,0 +1,24 @@
+{
+  "name": "openarchiver-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for the Open Archiver API",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "openarchiver-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.19",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
