@@ -48,6 +48,47 @@ Add to your MCP client config (e.g., `claude_desktop_config.json`, `opencode.jso
 }
 ```
 
+### OpenWebUI Configuration
+
+OpenWebUI supports MCP over Streamable HTTP only. Use [mcpo](https://github.com/open-webui/mcpo) to bridge this stdio-based MCP server:
+
+```bash
+# Start mcpo proxy
+uvx mcpo --port 8000 -- node dist/index.js
+
+# With environment variables (PowerShell)
+$env:OPENARCHIVER_BASE_URL="https://archive.example.com"; $env:OPENARCHIVER_API_KEY="oa_live_your_key"; uvx mcpo --port 8000 -- node dist/index.js
+```
+
+Then in OpenWebUI: **Admin Settings → External Tools → + Add Server**:
+
+| Field | Value |
+|---|---|
+| Type | `MCP (Streamable HTTP)` |
+| URL | `http://host.docker.internal:8000` (Docker) or `http://localhost:8000` |
+| Auth | `None` |
+
+Alternatively, use an mcpo config file (supports hot-reload with `--hot-reload`):
+
+```json
+{
+  "mcpServers": {
+    "openarchiver": {
+      "command": "node",
+      "args": ["path/to/openarchiver-mcp/dist/index.js"],
+      "env": {
+        "OPENARCHIVER_BASE_URL": "https://archive.example.com",
+        "OPENARCHIVER_API_KEY": "oa_live_your_key"
+      }
+    }
+  }
+}
+```
+
+```bash
+uvx mcpo --port 8000 --config mcp-config.json
+```
+
 ## Tools
 
 ### Search
