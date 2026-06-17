@@ -19,17 +19,31 @@ Set the following environment variables:
 |---|---|---|---|
 | `OPENARCHIVER_BASE_URL` | Yes | `http://localhost:3000` | Base URL of your Open Archiver instance |
 | `OPENARCHIVER_API_KEY` | Yes | — | API key from **Settings > API Keys** |
+| `TRANSPORT` | No | `stdio` | `http` for Streamable HTTP (Onyx, OpenWebUI), `stdio` for desktop MCP clients |
+| `PORT` | No | `8000` | HTTP port (only when `TRANSPORT=http`) |
+| `HOST` | No | `127.0.0.1` | HTTP bind address (only when `TRANSPORT=http`) |
 
 ## Usage
 
 ### Run directly
 
 ```bash
-npm run dev     # Development (tsx)
-node dist/index.js  # Production
+npm run dev        # Development (tsx)
+node dist/index.js # Production (stdio)
 ```
 
-### MCP Client Configuration
+### HTTP mode (for Onyx / OpenWebUI)
+
+Run the server with Streamable HTTP transport on port 8000:
+
+```bash
+TRANSPORT=http OPENARCHIVER_BASE_URL=https://archive.example.com OPENARCHIVER_API_KEY=oa_live_your_key node dist/index.js
+```
+
+The server exposes a `/mcp` endpoint — provide this URL to your MCP client.
+A `/health` endpoint is also available for readiness checks.
+
+### MCP Client Configuration (desktop)
 
 Add to your MCP client config (e.g., `claude_desktop_config.json`, `opencode.json`):
 
@@ -48,46 +62,30 @@ Add to your MCP client config (e.g., `claude_desktop_config.json`, `opencode.jso
 }
 ```
 
+### Onyx Configuration
+
+Start the server in HTTP mode (see above), then in Onyx:
+
+1. Navigate to **Admin Panel → MCP Actions**
+2. Click **Add MCP Server** and fill in:
+
+   | Field | Value |
+   |---|---|
+   | Server Name | `OpenArchiver` |
+   | MCP Server URL | `http://127.0.0.1:8000/mcp` |
+
+3. Select **No Auth** (or **API Key → Shared Key** if you protect the endpoint)
+4. Click **Add Server**, then **Connect** to validate
+
 ### OpenWebUI Configuration
 
-OpenWebUI supports MCP over Streamable HTTP only. Use [mcpo](https://github.com/open-webui/mcpo) to bridge this stdio-based MCP server:
+OpenWebUI supports the same Streamable HTTP transport. Start the server in HTTP mode (see above), then:
 
-```bash
-# Start mcpo proxy
-uvx mcpo --port 8000 -- node dist/index.js
-
-# With environment variables (PowerShell)
-$env:OPENARCHIVER_BASE_URL="https://archive.example.com"; $env:OPENARCHIVER_API_KEY="oa_live_your_key"; uvx mcpo --port 8000 -- node dist/index.js
-```
-
-Then in OpenWebUI: **Admin Settings → External Tools → + Add Server**:
-
-| Field | Value |
-|---|---|
-| Type | `MCP (Streamable HTTP)` |
-| URL | `http://host.docker.internal:8000` (Docker) or `http://localhost:8000` |
-| Auth | `None` |
-
-Alternatively, use an mcpo config file (supports hot-reload with `--hot-reload`):
-
-```json
-{
-  "mcpServers": {
-    "openarchiver": {
-      "command": "node",
-      "args": ["path/to/openarchiver-mcp/dist/index.js"],
-      "env": {
-        "OPENARCHIVER_BASE_URL": "https://archive.example.com",
-        "OPENARCHIVER_API_KEY": "oa_live_your_key"
-      }
-    }
-  }
-}
-```
-
-```bash
-uvx mcpo --port 8000 --config mcp-config.json
-```
+1. Go to **Admin Settings → External Tools → + Add Server**
+2. Set **Type** to `MCP (Streamable HTTP)`
+3. Enter the **URL**: `http://host.docker.internal:8000/mcp` (Docker) or `http://127.0.0.1:8000/mcp`
+4. Set **Auth** to `None`
+5. Click **Save**
 
 ## Tools
 
